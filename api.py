@@ -2,11 +2,13 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 import sqlite3
 
-app = FastAPI()
+app = FastAPI(
+    title="API Soporte Aplicaciones",
+    version="1.0.0"
+)
 
 
 class CasoSoporte(BaseModel):
-
     aplicacion: str
     responsable_soporte: str
     comentarios: str
@@ -34,7 +36,6 @@ class CasoSoporte(BaseModel):
 
 
 def crear_bd():
-
     conn = sqlite3.connect("soporte.db")
 
     cursor = conn.cursor()
@@ -76,6 +77,21 @@ def crear_bd():
 crear_bd()
 
 
+@app.get("/")
+def root():
+    return {
+        "estado": "OK",
+        "mensaje": "API Soporte Activa"
+    }
+
+
+@app.get("/health")
+def health():
+    return {
+        "status": "healthy"
+    }
+
+
 @app.post("/casos")
 def crear_caso(caso: CasoSoporte):
 
@@ -84,36 +100,39 @@ def crear_caso(caso: CasoSoporte):
     cursor = conn.cursor()
 
     cursor.execute("""
-    INSERT INTO casos(
-        aplicacion,
-        responsable_soporte,
-        comentarios,
-        solicitud_hp,
-        titulo_solicitud,
-        estado_solicitud,
-        detalle_estado,
-        fecha_envio_usuario,
-        proveedor,
-        fecha_derivacion_proveedor,
-        fecha_ultima_novedad,
-        fecha_creacion_ticket,
-        naturaleza,
-        prioridad,
-        solicito_sn3,
-        app,
-        app_det,
-        fecha_llegada_bandeja,
-        fecha_primera_derivacion,
-        masivo,
-        afecto_cliente,
-        causo_indisponibilidad,
-        tiempo_indisponibilidad,
-        tiempo_trabajado_sn2
-    )
-    VALUES
-    (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
+        INSERT INTO casos(
+            aplicacion,
+            responsable_soporte,
+            comentarios,
+            solicitud_hp,
+            titulo_solicitud,
+            estado_solicitud,
+            detalle_estado,
+            fecha_envio_usuario,
+            proveedor,
+            fecha_derivacion_proveedor,
+            fecha_ultima_novedad,
+            fecha_creacion_ticket,
+            naturaleza,
+            prioridad,
+            solicito_sn3,
+            app,
+            app_det,
+            fecha_llegada_bandeja,
+            fecha_primera_derivacion,
+            masivo,
+            afecto_cliente,
+            causo_indisponibilidad,
+            tiempo_indisponibilidad,
+            tiempo_trabajado_sn2
+        )
+        VALUES
+        (
+            ?,?,?,?,?,?,?,?,?,?,
+            ?,?,?,?,?,?,?,?,?,?,
+            ?,?,?,?
+        )
     """,
-
     (
         caso.aplicacion,
         caso.responsable_soporte,
@@ -145,8 +164,8 @@ def crear_caso(caso: CasoSoporte):
     conn.close()
 
     return {
-        "resultado":"OK",
-        "mensaje":"Caso registrado"
+        "resultado": "OK",
+        "mensaje": "Caso registrado correctamente"
     }
 
 
@@ -165,11 +184,12 @@ def obtener_casos():
 
     return datos
 
+
 if __name__ == "__main__":
-import uvicorn
- 
-uvicorn.run(
-app,
-host="0.0.0.0",
-port=8000
-)
+    import uvicorn
+
+    uvicorn.run(
+        app,
+        host="0.0.0.0",
+        port=8000
+    )
